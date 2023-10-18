@@ -70,7 +70,7 @@ public class SqlStudentGradeMain {
 	private static void average() {
 		boolean stopFlag = false;
 		while (!stopFlag) {
-			System.out.println("0:exit 1:개인 평균 2:과목평균");
+			System.out.println("0:나가기 1:개인 평균 2:과목평균");
 			System.out.printf(">>");
 			String selectMenu = scan.nextLine();
 
@@ -92,6 +92,9 @@ public class SqlStudentGradeMain {
 
 	private static void individualAverage() {
 		boolean loopflag = false;
+		Connection con = makeConnection();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
 
 		while (!loopflag) {
 			studentGradeSelect();
@@ -114,15 +117,13 @@ public class SqlStudentGradeMain {
 				System.out.printf("student_id %d 없음\n", student_id);
 				return;
 			}
-			Connection con = makeConnection();
-			Statement stmt = null;
-			ResultSet rs = null;
+
 			try {
-				stmt = con.createStatement();
 				String query = String.format(
-						"select (programing+application_sw+database_design+network_design+sql_java_design)/5 as avg from studentGrade where student_id=%d",
-						student_id);
-				rs = stmt.executeQuery(query);
+						"select (programing+application_sw+database_design+network_design+sql_java_design)/5 as avg from studentGrade where student_id=?");
+				pstmt = con.prepareStatement(query);
+				pstmt.setInt(1, student_id);
+				rs = pstmt.executeQuery();
 
 				while (rs.next()) {
 					double avg = rs.getDouble("AVG");
@@ -134,7 +135,7 @@ public class SqlStudentGradeMain {
 			} finally {
 				try {
 					rs.close();
-					stmt.close();
+					pstmt.close();
 					con.close();
 				} catch (SQLException e) {
 				}
@@ -149,37 +150,35 @@ public class SqlStudentGradeMain {
 		boolean loopflag = false;
 		while (!loopflag) {
 			String subject = null;
-			System.out.println(
-					"0:exit 1:programing 2:application_sw 3:database_design 4:network_design 5:sql_java_design");
-			System.out.printf(">>");
+			System.out.printf("프로그래밍활용 응용SW기초기술활용 데이터베이스구현 네트워크프로그래밍구현 sql활용 \n 평균점수를 알아볼 과목명 입력 (exit:나가기)>>");
 			String selectMenu = scan.nextLine();
 
-			boolean flag = false;
+			boolean subjectFlag = false;
 			switch (selectMenu) {
-			case "0":
+			case "exit":
 				loopflag = true;
-				flag = true;
+				subjectFlag = true;
 				break;
-			case "1":
+			case "프로그래밍활용":
 				subject = "programing";
 				break;
-			case "2":
+			case "응용SW기초기술활용":
 				subject = "application_sw";
 				break;
-			case "3":
+			case "데이터베이스구현":
 				subject = "database_design";
 				break;
-			case "4":
+			case "네트워크프로그래밍구현":
 				subject = "network_design";
 				break;
-			case "5":
+			case "sql활용":
 				subject = "sql_java_design";
 				break;
 			default:
-				flag = true;
+				subjectFlag = true;
 				System.out.println("잘못입력");
 			}
-			if (!flag) {
+			if (!subjectFlag) {
 				try {
 					String query = String.format("select round(avg(?),1) as avg from studentGrade");
 					pstmt = con.prepareStatement(query);
@@ -192,10 +191,11 @@ public class SqlStudentGradeMain {
 						System.out.println(data);
 					}
 				} catch (SQLException e) {
+					e.printStackTrace();
 					System.out.println("PreparedStatement 오류");
 				} finally {
 					try {
-//						rs.close();
+						rs.close();
 						pstmt.close();
 						con.close();
 					} catch (SQLException e) {
@@ -431,6 +431,7 @@ public class SqlStudentGradeMain {
 				System.out.println(data);
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
 			System.out.println("PreparedStatement 오류");
 		} finally {
 			try {
