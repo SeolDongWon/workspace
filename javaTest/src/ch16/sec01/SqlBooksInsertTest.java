@@ -1,6 +1,7 @@
 package ch16.sec01;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -22,7 +23,6 @@ public class SqlBooksInsertTest {
 				break;
 			case "1":
 				booksSelect();
-//				booksSelect2();
 				break;
 			case "2":
 				booksInsert();
@@ -39,11 +39,6 @@ public class SqlBooksInsertTest {
 			default:
 			}
 		}
-		// select()
-//		booksSelect();
-		// insert();
-//		booksInsert();
-
 		System.out.println("END");
 	}
 
@@ -63,7 +58,8 @@ public class SqlBooksInsertTest {
 		}
 
 		Connection con = ConnectDataBase.makeConnection();
-		Statement stmt = null;
+//		Statement stmt = null;
+		PreparedStatement pstmt = null;
 		// 3. crud 실행
 		try {
 			System.out.printf("(%s) 책이름 수정 입력>>", books.getTitle());
@@ -89,11 +85,20 @@ public class SqlBooksInsertTest {
 			} else {
 				price = Integer.parseInt(s_price);
 			}
-			stmt = con.createStatement();
-			String query = String.format(
-					"update books set title = '%s', publisher = '%s' , year = '%s', price = %d where book_id = %d",
-					title, publisher, year, price, bookID);
-			int count = stmt.executeUpdate(query);
+//			stmt = con.createStatement();
+//			String query = String.format(
+//					"update books set title = '%s', publisher = '%s' , year = '%s', price = %d where book_id = %d",
+//					title, publisher, year, price, bookID);
+			String query = String
+					.format("update books set title = ?, publisher = ? , year = ?, price = ? where book_id = ?");
+			pstmt = con.prepareStatement(query);
+			pstmt.setString(1, title);
+			pstmt.setString(2, publisher);
+			pstmt.setString(3, year);
+			pstmt.setInt(4, price);
+			pstmt.setInt(5, bookID);
+//			int count = stmt.executeUpdate(query);
+			int count = pstmt.executeUpdate();
 			// 4. count 체크
 			if (count == 0) {
 				System.out.printf("book_id %d Update 오류 발생 \n", bookID);
@@ -101,10 +106,12 @@ public class SqlBooksInsertTest {
 				System.out.printf("book_id %d Update 성공 \n", bookID);
 			}
 		} catch (SQLException e) {
+			e.printStackTrace();
 			System.out.println("statement 오류");
 		} finally {
 			try {
-				stmt.close();
+//				stmt.close();
+				pstmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -150,7 +157,8 @@ public class SqlBooksInsertTest {
 		booksSelect();
 
 		Connection con = ConnectDataBase.makeConnection();
-		Statement stmt = null;
+//		Statement stmt = null;
+		PreparedStatement pstmt = null;
 		// 3. crud 실행
 		try {
 			System.out.printf("수정할 책 아이디 입력>>");
@@ -165,11 +173,20 @@ public class SqlBooksInsertTest {
 			System.out.printf("수정 가격 입력>>");
 			int price = scan.nextInt();
 			scan.nextLine();
-			stmt = con.createStatement();
-			String query = String.format(
-					"update books set title = '%s', publisher = '%s' , year = '%s', price = %d where book_id = %d",
-					title, publisher, year, price, bookID);
-			int count = stmt.executeUpdate(query);
+//			stmt = con.createStatement();
+//			String query = String.format(
+//					"update books set title = '%s', publisher = '%s' , year = '%s', price = %d where book_id = %d",
+//					title, publisher, year, price, bookID);
+			String query = String
+					.format("update books set title = ?, publisher = ? , year = ?, price = ? where book_id = ?");
+			pstmt = con.prepareStatement(query);
+			pstmt.setString(1, title);
+			pstmt.setString(2, publisher);
+			pstmt.setString(3, year);
+			pstmt.setInt(4, price);
+			pstmt.setInt(5, bookID);
+//			int count = stmt.executeUpdate(query);
+			int count = pstmt.executeUpdate();
 			// 4. count 체크
 			if (count == 0) {
 				System.out.printf("book_id %d Update 오류 발생 \n", bookID);
@@ -180,7 +197,8 @@ public class SqlBooksInsertTest {
 			System.out.println("statement 오류");
 		} finally {
 			try {
-				stmt.close();
+//				stmt.close();
+				pstmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -192,15 +210,20 @@ public class SqlBooksInsertTest {
 		booksSelect();
 
 		Connection con = ConnectDataBase.makeConnection();
-		Statement stmt = null;
+//		Statement stmt = null;
+		PreparedStatement pstmt = null;
 		try {
 			System.out.printf("삭제할 책 아이디 입력>>");
 			int bookID = scan.nextInt();
 			scan.nextLine();
 			// 3. crud 실행
-			stmt = con.createStatement();
-			String query = String.format("delete from books where book_id = %d", bookID);
-			int count = stmt.executeUpdate(query);
+//			stmt = con.createStatement();
+//			String query = String.format("delete from books where book_id = %d", bookID);
+			String query = String.format("delete from books where book_id = ?");
+			pstmt = con.prepareStatement(query);
+			pstmt.setInt(1, bookID);
+//			int count = stmt.executeUpdate(query);
+			int count = pstmt.executeUpdate();
 			// 4. count 체크
 			if (count == 0) {
 				System.out.printf("book_id %d는 삭제 대상이 아닙니다.\n", bookID);
@@ -211,7 +234,8 @@ public class SqlBooksInsertTest {
 			System.out.println("statement 오류");
 		} finally {
 			try {
-				stmt.close();
+//				stmt.close();
+				pstmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -220,7 +244,8 @@ public class SqlBooksInsertTest {
 
 	private static void booksInsert() {
 		Connection con = ConnectDataBase.makeConnection();
-		Statement stmt = null;
+//		Statement stmt = null;
+		PreparedStatement pstmt = null;
 		// 3. crud 실행
 		try {
 			System.out.printf("책이름 입력>>");
@@ -232,10 +257,16 @@ public class SqlBooksInsertTest {
 			System.out.printf("가격 입력>>");
 			int price = scan.nextInt();
 			scan.nextLine();
-			stmt = con.createStatement();
-			String query = String.format("INSERT INTO books VALUES " + "(book_id_seq.nextval,'%s','%s','%s',%d)", title,
-					publisher, year, price);
-			int count = stmt.executeUpdate(query);
+//			stmt = con.createStatement();
+//			String query = String.format("INSERT INTO books VALUES " + "(book_id_seq.nextval,'%s','%s','%s',%d)", title, publisher, year, price);
+			String query = String.format("INSERT INTO books VALUES " + "(book_id_seq.nextval,?,?,?,?)");
+			pstmt = con.prepareStatement(query);
+			pstmt.setString(1, title);
+			pstmt.setString(2, publisher);
+			pstmt.setString(3, year);
+			pstmt.setInt(4, price);
+//			int count = stmt.executeUpdate(query);
+			int count = pstmt.executeUpdate();
 			// 4. count 체크
 			if (count != 1) {
 				System.out.println("Insert 오류 발생");
@@ -246,7 +277,8 @@ public class SqlBooksInsertTest {
 			System.out.println("statement 오류");
 		} finally {
 			try {
-				stmt.close();
+//				stmt.close();
+				pstmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -281,42 +313,6 @@ public class SqlBooksInsertTest {
 				stmt.close();
 				con.close();
 			} catch (SQLException e) {
-			}
-		}
-	}
-
-	private static void booksSelect2() {
-		Connection con = ConnectDataBase.makeConnection();
-		Statement stmt = null;
-		ResultSet rs = null;
-
-		System.out.println("\t이건 사람이 할 짓이 못되.....");
-		System.out.println("\t집 가고 싶어요.....");
-		// 3. select 문장 실행 (CURD 실행) -- con.createStatement 필요,중요
-		// 인포트는 java.sql로 한다.
-		try {
-			stmt = con.createStatement();
-			rs = stmt.executeQuery("SELECT * FROM books");
-			// 4. ResultSet 화면에 출력
-			while (rs.next()) {
-				int bookid = rs.getInt("BOOK_ID");
-				String title = rs.getString("TITLE");
-				String publisher = rs.getString("PUBLISHER");
-				String year = rs.getString("YEAR");
-				int price = rs.getInt("PRICE");
-				String data = String.format("%3d\t%25s\t%15s\t%5s\t%6d ", bookid, title, publisher, year, price);
-				System.out.println(data);
-			} // while
-
-		} catch (SQLException e) {
-			System.out.println("실행 오류");
-		} finally {
-			try {
-				rs.close();
-				stmt.close();
-				con.close();
-			} catch (Exception e2) {
-				// TODO: handle exception
 			}
 		}
 	}
