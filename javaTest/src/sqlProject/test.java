@@ -2,13 +2,12 @@ package sqlProject;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner;
 
-public class SqlStudentGradeMain {
+public class test {
 
 	public static Scanner scan = new Scanner(System.in);
 
@@ -20,10 +19,10 @@ public class SqlStudentGradeMain {
 		try {
 			// 1. 드라이버 로드
 			Class.forName("oracle.jdbc.driver.OracleDriver");
-//			System.out.println("OracleDriver 적재 성공");
+			System.out.println("OracleDriver 적재 성공");
 			// 2. 오라클데이터베이스 연결
 			con = DriverManager.getConnection(url, user, pwd);
-//			System.out.println("오라클 접속 성공");
+			System.out.println("오라클 접속 성공");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			System.out.println("오라클 적재 실패");
@@ -70,7 +69,7 @@ public class SqlStudentGradeMain {
 	private static void average() {
 		boolean stopFlag = false;
 		while (!stopFlag) {
-			System.out.println("0:나가기 1:개인 평균 2:과목평균");
+			System.out.println("0:exit 1:개인 평균 2:과목평균");
 			System.out.printf(">>");
 			String selectMenu = scan.nextLine();
 
@@ -91,111 +90,43 @@ public class SqlStudentGradeMain {
 	}
 
 	private static void individualAverage() {
-		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-
-		studentGradeSelect();
-		int student_id = 0;
-		try {
-			System.out.printf("학생 아이디 입력>>");
-			student_id = scan.nextInt();
-			scan.nextLine();
-		} catch (Exception e) {
-			student_id = 0;
-			scan.nextLine();
-		}
-
-		StudentGrade studentGrade = studentGradeSelectStudent_id(student_id);
-
-		if (studentGrade == null) {
-			System.out.printf("student_id %d 없음\n", student_id);
-			return;
-		}
-
-		try {
-			String query = String.format(
-					"select (programing+application_sw+database_design+network_design+sql_java_design)/5 as avg from studentGrade where student_id=?");
-			pstmt = con.prepareStatement(query);
-			pstmt.setInt(1, student_id);
-			rs = pstmt.executeQuery();
-
-			while (rs.next()) {
-				double avg = rs.getDouble("AVG");
-				String data = String.format("\n%s학생의 평균점수 : " + "%.2f \n", studentGrade.getStudent_name(), avg);
-				System.out.println(data);
-			}
-		} catch (SQLException e) {
-			System.out.println("PreparedStatement 오류");
-		} finally {
-			try {
-				rs.close();
-				pstmt.close();
-				con.close();
-			} catch (SQLException e) {
-			}
-		}
-
-	}
-
-	private static void subjectAverage() {
-		Connection con = makeConnection();
-//		PreparedStatement pstmt = null;
-		Statement stmt = null;
-		ResultSet rs = null;
-
 		boolean loopflag = false;
-		while (!loopflag) {
-			String subject = null;
-			System.out.printf("프로그래밍활용 응용SW기초기술활용 데이터베이스구현 네트워크프로그래밍구현 sql활용 \n 평균점수를 알아볼 과목명 입력 (exit:나가기)>>");
-			String selectMenu = scan.nextLine();
 
-			switch (selectMenu) {
-			case "exit":
-				loopflag = true;
-				continue;
-			case "프로그래밍활용":
-				subject = "programing";
+		while (!loopflag) {
+			studentGradeSelect();
+			System.out.printf("(0입력시 종료) 학생 아이디 입력>>");
+			int student_id = scan.nextInt();
+			scan.nextLine();
+			if (student_id == 0) {
 				break;
-			case "응용SW기초기술활용":
-				subject = "application_sw";
-				break;
-			case "데이터베이스구현":
-				subject = "database_design";
-				break;
-			case "네트워크프로그래밍구현":
-				subject = "network_design";
-				break;
-			case "sql활용":
-				subject = "sql_java_design";
-				break;
-			default:
-				System.out.println("잘못입력");
-				continue;
 			}
 
+			StudentGrade studentGrade = studentGradeSelectStudent_id(student_id);
+
+			if (studentGrade == null) {
+				System.out.printf("student_id %d 없음\n", student_id);
+				return;
+			}
+			Connection con = makeConnection();
+			Statement stmt = null;
+			ResultSet rs = null;
 			try {
 				stmt = con.createStatement();
-				String query = String.format("select avg(%s) as avg from studentGrade", subject);
+				String query = String.format(
+						"select (programing+application_sw+database_design+network_design+sql_java_design)/5 as avg from studentGrade where student_id=%d",
+						student_id);
 				rs = stmt.executeQuery(query);
-//				String query = String.format("select to_char(avg(?)) as avg from studentGrade");
-//				pstmt = con.prepareStatement(query);
-//				pstmt.setString(1, subject);
-//				rs = pstmt.executeQuery();
 
 				while (rs.next()) {
-					String avg = rs.getString("AVG");
-					String data = String.format("\n %s 과목의 전체학생 평균점수 : %s \n", subject, avg);
+					double avg = rs.getDouble("AVG");
+					String data = String.format("\n%s학생의 평균점수 : " + "%.2f \n", studentGrade.getStudent_name(), avg);
 					System.out.println(data);
 				}
-
 			} catch (SQLException e) {
-				e.printStackTrace();
-				System.out.println("PreparedStatement 오류");
+				System.out.println("statement 오류");
 			} finally {
 				try {
 					rs.close();
-//					pstmt.close();
 					stmt.close();
 					con.close();
 				} catch (SQLException e) {
@@ -204,17 +135,74 @@ public class SqlStudentGradeMain {
 		}
 	}
 
+	private static void subjectAverage() {
+		boolean loopflag = false;
+		while (!loopflag) {
+			String subject = null;
+			System.out.println(
+					"0:exit 1:programing 2:application_sw 3:database_design 4:network_design 5:sql_java_design");
+			System.out.printf(">>");
+			String selectMenu = scan.nextLine();
+
+			boolean flag = false;
+			switch (selectMenu) {
+			case "0":
+				loopflag = true;
+				flag = true;
+				break;
+			case "1":
+				subject = "programing";
+				break;
+			case "2":
+				subject = "application_sw";
+				break;
+			case "3":
+				subject = "database_design";
+				break;
+			case "4":
+				subject = "network_design";
+				break;
+			case "5":
+				subject = "sql_java_design";
+				break;
+			default:
+				flag = true;
+				System.out.println("잘못입력");
+			}
+			if (!flag) {
+				Connection con = makeConnection();
+				Statement stmt = null;
+				ResultSet rs = null;
+				try {
+					stmt = con.createStatement();
+					String query = String.format("select avg(%s) as avg from studentGrade", subject);
+					rs = stmt.executeQuery(query);
+
+					while (rs.next()) {
+						double avg = rs.getDouble("AVG");
+						String data = String.format("\n%s 과목의 전체학생 평균점수 : " + "%.2f \n", subject, avg);
+						System.out.println(data);
+					}
+				} catch (SQLException e) {
+					System.out.println("statement 오류");
+				} finally {
+					try {
+						rs.close();
+						stmt.close();
+						con.close();
+					} catch (SQLException e) {
+					}
+				}
+			}
+		}
+	}
+
 	private static void studentGradeUpdate() {
 		studentGradeSelect();
-		int student_id = 0;
-		try {
-			System.out.printf("수정할 학생 아이디 입력>>");
-			student_id = scan.nextInt();
-			scan.nextLine();
-		} catch (Exception e) {
-			student_id = 0;
-			scan.nextLine();
-		}
+
+		System.out.printf("수정할 학생 아이디 입력>>");
+		int student_id = scan.nextInt();
+		scan.nextLine();
 
 		StudentGrade studentGrade = studentGradeSelectStudent_id(student_id);
 
@@ -224,7 +212,7 @@ public class SqlStudentGradeMain {
 		}
 
 		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
+		Statement stmt = null;
 		try {
 			System.out.printf("(%s) 학생이름 수정 입력>>", studentGrade.getStudent_name());
 			String student_name = scan.nextLine().trim();
@@ -271,28 +259,22 @@ public class SqlStudentGradeMain {
 			} else {
 				sql_java_design = Integer.parseInt(s_sql_java_design);
 			}
+			stmt = con.createStatement();
 			String query = String.format(
-					"update studentgrade set student_name = ?, programing=?, application_sw=?, database_design = ?, network_design=?, sql_java_design=? where student_id =?");
-			pstmt = con.prepareStatement(query);
-			pstmt.setString(1, student_name);
-			pstmt.setInt(2, programing);
-			pstmt.setInt(3, application_sw);
-			pstmt.setInt(4, database_design);
-			pstmt.setInt(5, network_design);
-			pstmt.setInt(6, sql_java_design);
-			pstmt.setInt(7, student_id);
-			int count = pstmt.executeUpdate();
+					"update studentgrade set student_name = '%s', programing=%d, application_sw=%d, database_design = %d, network_design=%d, sql_java_design=%d where student_id =%d",
+					student_name, programing, application_sw, database_design, network_design, sql_java_design,
+					student_id);
+			int count = stmt.executeUpdate(query);
 			if (count == 0) {
 				System.out.printf("student_id %d Update 오류 발생 \n", student_id);
 			} else {
 				System.out.printf("student_id %d Update 성공 \n", student_id);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("PreparedStatement 오류");
+			System.out.println("statement 오류");
 		} finally {
 			try {
-				pstmt.close();
+				stmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -301,14 +283,13 @@ public class SqlStudentGradeMain {
 
 	private static StudentGrade studentGradeSelectStudent_id(int student_id) {
 		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		StudentGrade studentGrade = null;
 		try {
-			String query = String.format("select * from studentgrade where student_id = ?");
-			pstmt = con.prepareStatement(query);
-			pstmt.setInt(1, student_id);
-			rs = pstmt.executeQuery();
+			stmt = con.createStatement();
+			String query = String.format("select * from studentgrade where student_id = %d", student_id);
+			rs = stmt.executeQuery(query);
 
 			if (rs.next()) {
 				int _student_id = rs.getInt("STUDENT_ID");
@@ -324,10 +305,10 @@ public class SqlStudentGradeMain {
 
 			}
 		} catch (SQLException e) {
-			System.out.println("PreparedStatement 오류");
+			System.out.println("statement 오류");
 		} finally {
 			try {
-				pstmt.close();
+				stmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -339,25 +320,24 @@ public class SqlStudentGradeMain {
 		studentGradeSelect();
 
 		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
+		Statement stmt = null;
 		try {
 			System.out.printf("삭제할 학생 아이디 입력>>");
 			int student_id = scan.nextInt();
 			scan.nextLine();
-			String query = String.format("delete from studentGrade where student_id = ?");
-			pstmt = con.prepareStatement(query);
-			pstmt.setInt(1, student_id);
-			int count = pstmt.executeUpdate();
+			stmt = con.createStatement();
+			String query = String.format("delete from studentGrade where student_id = %d", student_id);
+			int count = stmt.executeUpdate(query);
 			if (count == 0) {
 				System.out.printf("student_id %d는 삭제 대상이 아닙니다.\n", student_id);
 			} else {
 				System.out.println("delete 성공");
 			}
 		} catch (SQLException e) {
-			System.out.println("PreparedStatement 오류");
+			System.out.println("statement 오류");
 		} finally {
 			try {
-				pstmt.close();
+				stmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -366,7 +346,7 @@ public class SqlStudentGradeMain {
 
 	private static void studentGradeInsert() {
 		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
+		Statement stmt = null;
 		try {
 			System.out.printf("학생이름 입력>>");
 			String student_name = scan.nextLine().trim();
@@ -381,15 +361,11 @@ public class SqlStudentGradeMain {
 			System.out.printf("SQL활용 점수 입력>>");
 			int sql_java_design = scan.nextInt();
 			scan.nextLine();
-			String query = String.format("INSERT INTO studentgrade VALUES " + "(student_id_seq.nextval,?,?,?,?,?,?)");
-			pstmt = con.prepareStatement(query);
-			pstmt.setString(1, student_name);
-			pstmt.setInt(2, programing);
-			pstmt.setInt(3, application_sw);
-			pstmt.setInt(4, database_design);
-			pstmt.setInt(5, network_design);
-			pstmt.setInt(6, sql_java_design);
-			int count = pstmt.executeUpdate();
+			stmt = con.createStatement();
+			String query = String.format(
+					"INSERT INTO studentgrade VALUES " + "(student_id_seq.nextval,'%s','%d','%d','%d','%d','%d')",
+					student_name, programing, application_sw, database_design, network_design, sql_java_design);
+			int count = stmt.executeUpdate(query);
 			// 4. count 체크
 			if (count != 1) {
 				System.out.println("Insert 오류 발생");
@@ -397,10 +373,10 @@ public class SqlStudentGradeMain {
 				System.out.println("Insert 성공");
 			}
 		} catch (SQLException e) {
-			System.out.println("PreparedStatement 오류");
+			System.out.println("statement 오류");
 		} finally {
 			try {
-				pstmt.close();
+				stmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
@@ -409,33 +385,30 @@ public class SqlStudentGradeMain {
 
 	private static void studentGradeSelect() {
 		Connection con = makeConnection();
-		PreparedStatement pstmt = null;
+		Statement stmt = null;
 		ResultSet rs = null;
 		try {
-			String query = String.format("select * from studentgrade order by student_id");
-			pstmt = con.prepareStatement(query);
-			rs = pstmt.executeQuery();
-			System.out.println("일련번호 \t\t  이름 \t 프로그래밍활용 \t 응용SW기초기술 활용 \t 데이터베이스구현 \t 네트워크프로그래밍구현 \t sql활용");
+			stmt = con.createStatement();
+			rs = stmt.executeQuery("select * from studentgrade order by student_id");
+
 			while (rs.next()) {
-				int student_id = rs.getInt("STUDENT_id");
+				int student_id = rs.getInt("STUDENT_ID");
 				String student_name = rs.getString("STUDENT_NAME");
 				int programing = rs.getInt("PROGRAMING");
 				int application_sw = rs.getInt("APPLICATION_SW");
 				int database_design = rs.getInt("DATABASE_DESIGN");
 				int network_design = rs.getInt("NETWORK_DESIGN");
 				int sql_java_design = rs.getInt("SQL_JAVA_DESIGN");
-				String data = String.format("%3d \t %10s \t\t %3d \t\t %3d \t\t %3d \t\t %3d \t\t\t %3d", student_id,
-						student_name, programing, application_sw, database_design, network_design, sql_java_design);
-
+				String data = String.format("%3d \t %10s \t %3d \t %3d \t %3d \t %3d \t %3d", student_id, student_name,
+						programing, application_sw, database_design, network_design, sql_java_design);
 				System.out.println(data);
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-			System.out.println("PreparedStatement 오류");
+			System.out.println("statement 오류");
 		} finally {
 			try {
 				rs.close();
-				pstmt.close();
+				stmt.close();
 				con.close();
 			} catch (SQLException e) {
 			}
