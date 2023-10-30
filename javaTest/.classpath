@@ -15,6 +15,7 @@
 	<classpathentry kind="src" path="ch07"/>
 	<classpathentry kind="src" path="ch12"/>
 	<classpathentry kind="src" path="ch15"/>
+	<classpathentry kind="src" path="apiTest"/>
 	<classpathentry kind="lib" path="C:/download/ojdbc11.jar">
 		<attributes>
 			<attribute name="module" value="true"/>

@@ -44,7 +44,7 @@ public class ApiExplorer {
 		StringBuilder urlBuilder = new StringBuilder(
 				"https://apis.data.go.kr/1611000/nsdi/IndvdLandPriceService/attr/getIndvdLandPriceAttr");
 		try {
-			fileInputStream = new FileInputStream("src/data/Net/apiTest.properties");
+			fileInputStream = new FileInputStream("apiTest/data/Net/apiTest.properties");
 			properties.load(fileInputStream);
 			String encoding = properties.getProperty("encoding");
 			urlBuilder.append("?" + URLEncoder.encode("serviceKey", "UTF-8") + encoding);
@@ -94,10 +94,13 @@ public class ApiExplorer {
 			// 4. xml 파일 방식을 문서방식으로 변환
 			Document doc = parseXML(conn.getInputStream());
 
+			System.out.println(doc);
+
 			// 5. 노드개념 => 객체개념 => 버튼(노드), 이미지(노드),태그(노드)
 			// field 태그가 만약 50개라면 NodeList가 50개이다. field 태그객체가 존재한다
 			// a. field 태그객체 목록으로 가져온다.
 			NodeList descNodes = doc.getElementsByTagName("field");
+//			NodeList descNodes = doc.getElementsByTagName("row");
 			// b. Corona19Data List객체 생성
 			List<LandPrice> list = new ArrayList<>();
 			// c. 각 field 태그의 자식태그에서 정보 가져오기
@@ -148,7 +151,7 @@ public class ApiExplorer {
 						break;
 					}
 				}
-				// d. List객체에 추가
+//				 d. List객체에 추가
 				list.add(data);
 			}
 			// e.최종확인
