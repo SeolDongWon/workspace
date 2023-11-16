@@ -1,8 +1,10 @@
-package seoulApi;
+package controller;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import model.CultureEventVO;
 
 public class CultureEventController {
 	public static Scanner scan = new Scanner(System.in);
@@ -34,10 +36,10 @@ public class CultureEventController {
 		boolean firstSearchFlag = false;
 		ArrayList<String> aList = new ArrayList<String>();
 
-//		StringBuilder searchEventSB = new StringBuilder("select * from culturalEventInfo");
+		StringBuilder searchEventSB = new StringBuilder("select * from culturalEventInfo");
 		String searchName = "CODENAME";
-		StringBuilder searchEventSB = new StringBuilder(
-				"select * from culturalEventInfo where " + searchName + " like ? ");
+//		StringBuilder searchEventSB = new StringBuilder(
+//				"select * from culturalEventInfo where " + searchName + " like ? ");
 		System.out.println("검색대상을 선택안하면 전체보기");
 
 		while (!stopFlag) {
